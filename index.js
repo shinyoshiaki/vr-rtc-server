@@ -5,7 +5,7 @@ console.log("start");
 
 const srv = http.Server();
 const io = socketio(srv);
-srv.listen(20000);
+srv.listen(process.env.PORT || 20000);
 
 const roomList = {};
 
