@@ -18,6 +18,13 @@ io.on("connection", socket => {
     console.log("roomList", roomList);
   });
 
+  socket.on("connect",data=>{
+    const roomId = data.room;
+    console.log('connected',roomId,socket.id)
+    delete roomList[roomId]
+    console.log("roomList", roomList);
+  })
+
   socket.on("join", data => {
     const roomId = data.room;
     if (Object.keys(roomList).includes(roomId)) {
