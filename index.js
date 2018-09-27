@@ -18,12 +18,12 @@ io.on("connection", socket => {
     console.log("roomList", roomList);
   });
 
-  socket.on("connect",data=>{
+  socket.on("connect", data => {
     const roomId = data.room;
-    console.log('connected',roomId,socket.id)
-    delete roomList[roomId]
+    console.log("connected", roomId, socket.id);
+    delete roomList[roomId];
     console.log("roomList", roomList);
-  })
+  });
 
   socket.on("join", data => {
     const roomId = data.room;
@@ -32,7 +32,8 @@ io.on("connection", socket => {
       const room = roomList[roomId];
       room.guestId = socket.id;
       console.log("roomList", roomList);
-      io.sockets.sockets[socket.id].emit("join", { room: roomId });
+      if (io.sockets.sockets[socket.id])
+        io.sockets.sockets[socket.id].emit("join", { room: roomId });
     }
   });
 
@@ -41,7 +42,8 @@ io.on("connection", socket => {
     const sdp = data.sdp;
     console.log("offer", roomId);
     const room = roomList[roomId];
-    io.sockets.sockets[room.hostId].emit("offer", { sdp });
+    if (io.sockets.sockets[room.hostId])
+      io.sockets.sockets[room.hostId].emit("offer", { sdp });
   });
 
   socket.on("answer", data => {
@@ -49,7 +51,8 @@ io.on("connection", socket => {
     const sdp = data.sdp;
     console.log("answer", roomId);
     const room = roomList[roomId];
-    io.sockets.sockets[room.guestId].emit("answer", { sdp });
+    if (io.sockets.sockets[room.guestId])
+      io.sockets.sockets[room.guestId].emit("answer", { sdp });
   });
 
   socket.on("ice", data => {
@@ -60,17 +63,19 @@ io.on("connection", socket => {
     console.log("ice", roomId);
     const room = roomList[roomId];
     if (socket.id === room.hostId) {
-      io.sockets.sockets[room.guestId].emit("ice", {
-        candidate,
-        sdpMline,
-        sdpMid
-      });
+      if (io.sockets.sockets[room.guestId])
+        io.sockets.sockets[room.guestId].emit("ice", {
+          candidate,
+          sdpMline,
+          sdpMid
+        });
     } else {
-      io.sockets.sockets[room.hostId].emit("ice", {
-        candidate,
-        sdpMline,
-        sdpMid
-      });
+      if (io.sockets.sockets[room.hostId])
+        io.sockets.sockets[room.hostId].emit("ice", {
+          candidate,
+          sdpMline,
+          sdpMid
+        });
     }
   });
 });
