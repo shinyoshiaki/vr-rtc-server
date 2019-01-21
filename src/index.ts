@@ -1,13 +1,13 @@
-const socketio = require("socket.io");
-const http = require("http");
+import socketio from "socket.io";
+import http from "http";
 
 console.log("start");
 
-const srv = http.Server();
+const srv = new http.Server();
 const io = socketio(srv);
 srv.listen(process.env.PORT || 20000);
 
-const roomList = {};
+const roomList: { [key: string]: { hostId: string; guestId: string } } = {};
 
 io.on("connection", socket => {
   console.log("connection");
