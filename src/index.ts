@@ -12,15 +12,15 @@ const roomList: { [key: string]: { hostId: string; guestId: string } } = {};
 io.on("connection", socket => {
   console.log("connection");
 
-  socket.on("create", data => {
-    const roomId = data.room;
+  socket.on("create", (data: { roomId: string }) => {
+    const { roomId } = data;
     console.log("create", roomId);
     roomList[roomId] = { hostId: socket.id, guestId: "" };
     console.log("roomList", roomList);
   });
 
-  socket.on("connect", (data: { room: string }) => {
-    const roomId = data.room;
+  socket.on("connect", (data: { roomId: string }) => {
+    const { roomId } = data;
     console.log("connected", roomId, socket.id);
     delete roomList[roomId];
     console.log("roomList", roomList);
@@ -29,8 +29,8 @@ io.on("connection", socket => {
     io.sockets.sockets[guestId].disconnect();
   });
 
-  socket.on("join", (data: { room: string }) => {
-    const roomId = data.room;
+  socket.on("join", (data: { roomId: string }) => {
+    const { roomId } = data;
     if (Object.keys(roomList).includes(roomId)) {
       try {
         console.log("join", roomId);
@@ -44,63 +44,20 @@ io.on("connection", socket => {
     }
   });
 
-  socket.on("offer", (data: { room: string; sdp: string }) => {
+  socket.on("sdp", (data: { roomId: string; sdp: string }) => {
     try {
-      const roomId = data.room;
-      const sdp = data.sdp;
-      console.log("offer", roomId);
-      const room = roomList[roomId];
-      io.sockets.sockets[room.hostId].emit("offer", { sdp });
-    } catch (error) {
-      console.log(error);
-    }
-  });
+      const { roomId, sdp } = data;
 
-  socket.on("answer", (data: { room: string; sdp: string }) => {
-    try {
-      const roomId = data.room;
-      const sdp = data.sdp;
-      console.log("answer", roomId);
       const room = roomList[roomId];
-      io.sockets.sockets[room.guestId].emit("answer", { sdp });
-    } catch (error) {
-      console.log(error);
-    }
-  });
-
-  socket.on(
-    "ice",
-    (data: {
-      room: string;
-      candidate: string;
-      sdpMline: string;
-      sdpMid: string;
-    }) => {
-      try {
-        const roomId = data.room;
-        const candidate = data.candidate;
-        const sdpMline = data.sdpMline;
-        const sdpMid = data.sdpMid;
-        console.log("ice", roomId);
-        const room = roomList[roomId];
-        if (socket.id === room.hostId) {
-          if (io.sockets.sockets[room.guestId])
-            io.sockets.sockets[room.guestId].emit("ice", {
-              candidate,
-              sdpMline,
-              sdpMid
-            });
-        } else {
-          if (io.sockets.sockets[room.hostId])
-            io.sockets.sockets[room.hostId].emit("ice", {
-              candidate,
-              sdpMline,
-              sdpMid
-            });
-        }
-      } catch (error) {
-        console.log(error);
+      if (socket.id === room.hostId) {
+        if (io.sockets.sockets[room.guestId])
+          io.sockets.sockets[room.guestId].emit("sdp", { sdp });
+      } else {
+        if (io.sockets.sockets[room.hostId])
+          io.sockets.sockets[room.hostId].emit("sdp", { sdp });
       }
+    } catch (error) {
+      console.log(error);
     }
-  );
+  });
 });
