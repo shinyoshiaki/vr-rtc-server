@@ -1,2 +1,3 @@
+git push heroku master
 heroku logs --tail
- heroku restart
+heroku restart
