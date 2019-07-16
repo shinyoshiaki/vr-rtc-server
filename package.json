@@ -10,10 +10,11 @@
     "build:types": "tsc --emitDeclarationOnly",
     "build:js": "babel src --out-dir lib --extensions \".ts,.tsx\" --source-maps inline",
     "start": "node ./lib/index.js",
-    "ts":"ts-node ./src/index.tss"
+    "ts": "ts-node ./src/index.ts"
   },
   "dependencies": {
-    "socket.io": "^2.1.1"
+    "socket.io": "^2.1.1",
+    "socket.io-client": "^2.2.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.2.0",
@@ -23,6 +24,8 @@
     "@babel/preset-env": "^7.2.0",
     "@babel/preset-typescript": "^7.1.0",
     "@types/socket.io": "^2.1.2",
-    "typescript": "^3.2.2"
+    "@types/socket.io-client": "^1.4.32",
+    "typescript": "^3.2.2",
+    "webrtc4me": "^0.4.3"
   }
 }

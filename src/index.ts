@@ -1,32 +1,35 @@
 import socketio from "socket.io";
 import http from "http";
 
-console.log("start");
-
 const srv = new http.Server();
 const io = socketio(srv);
 srv.listen(process.env.PORT || 20000);
 
 const roomList: { [key: string]: { hostId: string; guestId: string } } = {};
 
-interface roomObj {
+type roomObj = {
   roomId: string;
-}
+};
 
 io.on("connection", socket => {
-  console.log("connection");
-
   socket.on("create", (data: roomObj) => {
     const { roomId } = data;
-    console.log("create", roomId);
     roomList[roomId] = { hostId: socket.id, guestId: "" };
-    console.log("roomList", roomList);
+  });
+
+  socket.on("check", (data: roomObj) => {
+    const { roomId } = data;
+    const exist = roomList[roomId];
+    if (exist) {
+      socket.emit("check", { result: true });
+    } else {
+      socket.emit("check", { result: false });
+    }
   });
 
   socket.on("connect", (data: roomObj) => {
     try {
       const { roomId } = data;
-      console.log("connected", roomId, socket.id);
       const { hostId, guestId } = roomList[roomId];
       delete roomList[roomId];
       io.sockets.sockets[hostId].disconnect();
@@ -40,10 +43,8 @@ io.on("connection", socket => {
     const { roomId } = data;
     if (Object.keys(roomList).includes(roomId)) {
       try {
-        console.log("join", roomId);
         const room = roomList[roomId];
         room.guestId = socket.id;
-        console.log("roomList", roomList);
         io.sockets.sockets[socket.id].emit("join", { room: roomId });
       } catch (error) {
         console.log(error);
@@ -56,8 +57,6 @@ io.on("connection", socket => {
       const { roomId, sdp } = data;
 
       const room = roomList[roomId];
-
-      console.log("sdp", { room, data });
 
       if (socket.id === room.hostId) {
         if (io.sockets.sockets[room.guestId])
